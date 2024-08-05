@@ -1,5 +1,6 @@
 package com.mkiperszmid.habitsappcourse.home
 
+import android.Manifest
 import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.compose.ui.test.*
@@ -12,6 +13,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.rule.GrantPermissionRule
 import androidx.work.Configuration
 import androidx.work.testing.SynchronousExecutor
 import androidx.work.testing.WorkManagerTestInitHelper
@@ -45,9 +47,12 @@ class CreateHabitE2E {
     @get:Rule
     val composeRule = createAndroidComposeRule<MainActivity>()
 
+    @get:Rule
+    val notificationPermission = GrantPermissionRule.grant(Manifest.permission.POST_NOTIFICATIONS)
+
     private lateinit var homeRepository: FakeHomeRepository
-    private lateinit var homeViewModel: com.mkiperszmid.home_presentation.home.HomeViewModel
-    private lateinit var detailViewModel: com.mkiperszmid.home_presentation.detail.DetailViewModel
+    private lateinit var homeViewModel: HomeViewModel
+    private lateinit var detailViewModel: DetailViewModel
     private lateinit var navController: NavHostController
 
     @Before
@@ -58,28 +63,28 @@ class CreateHabitE2E {
             .build()
         WorkManagerTestInitHelper.initializeTestWorkManager(context, config)
         homeRepository = FakeHomeRepository()
-        val usecases = com.mkiperszmid.home_domain.home.usecase.HomeUseCases(
-            completeHabitUseCase = com.mkiperszmid.home_domain.home.usecase.CompleteHabitUseCase(
+        val usecases = HomeUseCases(
+            completeHabitUseCase = CompleteHabitUseCase(
                 homeRepository
             ),
-            getHabitsForDateUseCase = com.mkiperszmid.home_domain.home.usecase.GetHabitsForDateUseCase(
+            getHabitsForDateUseCase = GetHabitsForDateUseCase(
                 homeRepository
             ),
-            syncHabitUseCase = com.mkiperszmid.home_domain.home.usecase.SyncHabitUseCase(
+            syncHabitUseCase = SyncHabitUseCase(
                 homeRepository
             )
         )
-        homeViewModel = com.mkiperszmid.home_presentation.home.HomeViewModel(usecases)
+        homeViewModel = HomeViewModel(usecases)
 
-        val detailUseCase = com.mkiperszmid.home_domain.detail.usecase.DetailUseCases(
-            getHabitByIdUseCase = com.mkiperszmid.home_domain.detail.usecase.GetHabitByIdUseCase(
+        val detailUseCase = DetailUseCases(
+            getHabitByIdUseCase = GetHabitByIdUseCase(
                 homeRepository
             ),
-            insertHabitUseCase = com.mkiperszmid.home_domain.detail.usecase.InsertHabitUseCase(
+            insertHabitUseCase = InsertHabitUseCase(
                 homeRepository
             )
         )
-        detailViewModel = com.mkiperszmid.home_presentation.detail.DetailViewModel(
+        detailViewModel = DetailViewModel(
             SavedStateHandle(),
             detailUseCase
         )
@@ -88,7 +93,7 @@ class CreateHabitE2E {
             navController = rememberNavController()
             NavHost(navController = navController, startDestination = NavigationRoute.Home.route) {
                 composable(NavigationRoute.Home.route) {
-                    com.mkiperszmid.home_presentation.home.HomeScreen(
+                    HomeScreen(
                         onNewHabit = {
                             navController.navigate(NavigationRoute.Detail.route)
                         },
@@ -112,7 +117,7 @@ class CreateHabitE2E {
                         }
                     )
                 ) {
-                    com.mkiperszmid.home_presentation.detail.DetailScreen(
+                    DetailScreen(
                         onBack = {
                             navController.popBackStack()
                         },

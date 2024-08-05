@@ -116,4 +116,6 @@ dependencies {
     androidTestImplementation(libs.hilt.android.testing)
     testImplementation(libs.mockk)
     androidTestImplementation(libs.androidx.work.testing)
+    androidTestImplementation(libs.androidx.core.ktx)
+    androidTestImplementation(libs.androidx.rules)
 }
